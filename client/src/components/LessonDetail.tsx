@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type QuizQuestion, type Lesson } from "../types";
 import axios from "axios";
 import Quiz from "./Quiz";
@@ -16,6 +16,8 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [quizError, setQuizError] = useState("");
 
+  const quizContainerRef = useRef<HTMLDivElement | null>(null);
+
   // This function takes the Markdown string and converts it to HTML
   const getMarkdownText = () => {
     const rawMarkup = marked.parse(lesson.content);
@@ -29,7 +31,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
     setQuizQuestions(null);
     axios
       .post("https://english-quiz-generator-api.vercel.app/api/generate-quiz", {
-        lessonContent: lesson.content,
+        lessonTitle: lesson.title,
       })
       .then((response) => {
         setQuizQuestions(response.data.data);
@@ -40,6 +42,15 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
       })
       .finally(() => setIsLoading(false));
   };
+
+  useEffect(() => {
+    if (quizQuestions && quizContainerRef.current) {
+      quizContainerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [quizQuestions]);
 
   return (
     <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200 max-w-4xl mx-auto">
@@ -81,11 +92,12 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
           {isLoading ? "Generating AI Quiz..." : "Generate AI Quiz"}
         </button>
       </div>
-
-      {quizError && (
-        <p className="text-center text-red-500 mt-4">{quizError}</p>
-      )}
-      {quizQuestions && <Quiz questions={quizQuestions} />}
+      <div ref={quizContainerRef}>
+        {quizError && (
+          <p className="text-center text-red-500 mt-4">{quizError}</p>
+        )}
+        {quizQuestions && <Quiz questions={quizQuestions} />}
+      </div>
     </div>
   );
 };
