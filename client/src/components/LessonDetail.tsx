@@ -28,7 +28,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
     setQuizError("");
     setQuizQuestions(null);
     axios
-      .post("http://localhost:3000/api/generate-quiz", {
+      .post("https://english-quiz-generator-api.vercel.app/api/generate-quiz", {
         lessonContent: lesson.content,
       })
       .then((response) => {
@@ -36,6 +36,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
       })
       .catch((err) => {
         setQuizError("Failed to generate quiz.");
+        console.error("Error generating quiz:", err);
       })
       .finally(() => setIsLoading(false));
   };

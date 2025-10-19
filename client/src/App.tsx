@@ -14,7 +14,7 @@ const App: React.FC<{}> = () => {
   useEffect(() => {
     // Fetch lessons from the API
     axios
-      .get("http://localhost:3000/api/lessons")
+      .get("https://english-quiz-generator-api.vercel.app/api/lessons")
       .then((response) => {
         setLessons(response.data);
       })
