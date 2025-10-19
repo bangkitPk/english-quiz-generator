@@ -20,9 +20,9 @@ const replicate = new Replicate({
 // --- API Endpoint for Quiz Generation ---
 app.post("/api/generate-quiz", async (req, res) => {
   try {
-    const { lessonContent } = req.body;
-    if (!lessonContent) {
-      return res.status(400).json({ error: "Lesson content is required." });
+    const { lessonTitle } = req.body;
+    if (!lessonTitle) {
+      return res.status(400).json({ error: "Lesson title is required." });
     }
 
     const model = "google/gemini-2.5-flash";
@@ -31,7 +31,7 @@ app.post("/api/generate-quiz", async (req, res) => {
     const prompt = `
 You are an expert English linguist and teacher designing a quiz.
 Generate exactly 5 unique multiple-choice questions about ---
-${lessonContent} 
+${lessonTitle} 
 ---
 to improves student understanding about the topic.
 
@@ -117,7 +117,7 @@ app.get("/api/lessons", (req, res) => {
   res.json(lessons);
 });
 
-// --- Start the Server ---
+// --- Start the Server for local development ---
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
