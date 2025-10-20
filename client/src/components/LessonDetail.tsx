@@ -13,6 +13,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[] | null>(
     null
   );
+  const [previousQuestions, setPreviousQuestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [quizError, setQuizError] = useState("");
 
@@ -24,17 +25,26 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lesson, onBack }) => {
     return { __html: rawMarkup };
   };
 
-  // The quiz generation logic remains the same
   const generateQuiz = () => {
     setIsLoading(true);
     setQuizError("");
     setQuizQuestions(null);
     axios
-      .post("https://english-quiz-generator-api.vercel.app/api/generate-quiz", {
+      .post(`${import.meta.env.VITE_API_URL}/generate-quiz`, {
         lessonTitle: lesson.title,
+        previousQuestions: previousQuestions,
       })
       .then((response) => {
         setQuizQuestions(response.data.data);
+        // Update previous questions to avoid repetition questions
+        // limit previous questions to last 10 questions
+        const newQuestions = response.data.data.map(
+          (q: QuizQuestion) => q.question
+        );
+        setPreviousQuestions((prev) => {
+          const updated = [...prev, ...newQuestions];
+          return updated.slice(-10);
+        });
       })
       .catch((err) => {
         setQuizError("Failed to generate quiz.");

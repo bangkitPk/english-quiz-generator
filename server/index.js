@@ -20,20 +20,33 @@ const replicate = new Replicate({
 // --- API Endpoint for Quiz Generation ---
 app.post("/api/generate-quiz", async (req, res) => {
   try {
-    const { lessonTitle } = req.body;
+    const { lessonTitle, previousQuestions } = req.body;
+
     if (!lessonTitle) {
       return res.status(400).json({ error: "Lesson title is required." });
     }
 
     const model = "google/gemini-2.5-flash";
-    // const model = "ibm-granite/granite-3.3-8b-instruct:618ecbe80773609e96ea19d8c96e708f6f2b368bb89be8fad509983194466bf8";
+
+    // To make sure the generated questions are different from previous ones
+    let historyPromptSection = "";
+    if (previousQuestions && previousQuestions.length > 0) {
+      historyPromptSection = `
+**CRITICAL RULE: Do NOT generate any questions that are the same or semantically similar to the questions in the following list:**
+---
+${previousQuestions.join("\n")}
+---
+`;
+    }
 
     const prompt = `
 You are an expert English linguist and teacher designing a quiz.
-Generate exactly 5 unique multiple-choice questions about ---
+Generate exactly 5 **new and unique** multiple-choice questions about ---
 ${lessonTitle} 
 ---
 to improves student understanding about the topic.
+
+${historyPromptSection}
 
 Your entire response MUST be a single, valid JSON array of objects. Your response must start with '[' and end with ']'.
 
@@ -53,7 +66,7 @@ Make sure you provide the question and correctAnswer grammatically correct
       top_p: 0.95,
     };
 
-    console.log("Calling Replicate API...");
+    console.log("Calling Replicate API with dynamic prompt...");
     const output = await replicate.run(model, { input });
 
     // Join the streamed output into a single string
